@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		else if (v.getId() == R.id.backward) new Control().execute("backward");
 		else if (v.getId() == R.id.connect) {
 			if (ev3 == null) {
-				new Control().execute("connect","10.0.1.1");
+				new Control().execute("connect","192.168.44.245");
 				connect.setText("Disconnect");
 			}
 			else {
