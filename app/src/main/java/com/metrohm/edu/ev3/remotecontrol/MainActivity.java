@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.*;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import lejos.hardware.Audio;
@@ -29,9 +28,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	private Button btnLeft;
 	private Button btnRight;
 	private Button btnForward;
-	private Button btnBackward;
-	private Button btnGetDistance;
-	private TextView txtDistance;
 	private Audio audio;
 
 	@Override
@@ -49,14 +45,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		btnLeft = findViewById(R.id.left);
 		btnRight = findViewById(R.id.right);
 		btnForward = findViewById(R.id.forward);
-		btnBackward = findViewById(R.id.backward);
-		txtDistance = findViewById(R.id.txtDistance);
-		btnGetDistance = findViewById(R.id.btnGetDistance);
-		btnGetDistance.setOnClickListener(this);
 		btnLeft.setOnTouchListener(this);
 		btnRight.setOnTouchListener(this);
 		btnForward.setOnTouchListener(this);
-		btnBackward.setOnTouchListener(this);
 
 		if (checkSelfPermission(Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
 			requestPermissions(new String[] { Manifest.permission.INTERNET }, 101);
@@ -85,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 			try {
 				distanceProvider.fetchSample(distanceSample, 0);
 				String distance = "Distance: " + distanceSample[0] + " cm";
-				runOnUiThread(() -> txtDistance.setText(distance));
+				runOnUiThread(() -> {/*todo*/});
 			} catch (Exception e) {
 				Log.e("EV3", "exception on updateDistance", e);
 				updateDistanceValue();
@@ -95,9 +86,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 	@Override
 	public void onClick(View v) {
-		if (v.getId() == R.id.btnGetDistance) {
-			updateDistanceValue();
-		}
+		int id = v.getId();
 	}
 
 	@Override
@@ -107,7 +96,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 				if (v.getId() == R.id.left) new Control().execute("rotate left");
 				else if (v.getId() == R.id.right) new Control().execute("rotate right");
 				else if (v.getId() == R.id.forward) new Control().execute("forward");
-				else if (v.getId() == R.id.backward) new Control().execute("backward");
 				return true;
 			case MotionEvent.ACTION_UP:
 				new Control().execute("stop");
@@ -117,7 +105,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	}
 
 	private class Control extends AsyncTask<String, Integer, Long> {
-
 		protected Long doInBackground(String... cmd) {
 			if (cmd[0].equals("connect")) {
 				try {
@@ -134,9 +121,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 						btnLeft.setEnabled(true);
 						btnRight.setEnabled(true);
 						btnForward.setEnabled(true);
-						btnBackward.setEnabled(true);
-						txtDistance.setVisibility(View.VISIBLE);
-						btnGetDistance.setVisibility(View.VISIBLE);
+
 					});
 					return 0l;
 				} catch (Exception e) {
@@ -145,9 +130,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 					runOnUiThread(() -> {
 						btnConnect.setIcon(R.drawable.ic_link);
 						btnConnect.setVisible(true);
-						txtDistance.setText("Distance: -- cm");
-						txtDistance.setVisibility(View.INVISIBLE);
-						btnGetDistance.setVisibility(View.INVISIBLE);
 					});
 					return 1l;
 				}
@@ -157,13 +139,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 				runOnUiThread(() -> {
 					btnConnect.setIcon(R.drawable.ic_link);
 					btnConnect.setVisible(true);
-					txtDistance.setText("Distance: -- cm");
-					txtDistance.setVisibility(View.INVISIBLE);
-					btnGetDistance.setVisibility(View.INVISIBLE);
 					btnLeft.setEnabled(false);
 					btnRight.setEnabled(false);
 					btnForward.setEnabled(false);
-					btnBackward.setEnabled(false);
 				});
 				return 0l;
 			}
