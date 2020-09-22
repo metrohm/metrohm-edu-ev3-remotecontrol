@@ -34,13 +34,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	private TextView txtDistance;
 	private Audio audio;
 
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.menu_main, menu);
-		return true;
-	}
-
+	/**
+	 * Called on App Startup
+	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -63,6 +59,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		}
 	}
 
+	/**
+	 * Add Main Menu to View
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.menu_main, menu);
+		return true;
+	}
+
+	/**
+	 * Called when a Menu Item is Tapped
+	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
@@ -80,6 +89,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		return true;
 	}
 
+	/**
+	 * Update Distance from the Distance Sensor
+	 */
 	private void updateDistanceValue() {
 		new Thread(() -> {
 			try {
@@ -93,6 +105,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		}).start();
 	}
 
+	/**
+	 * A View has been clicked
+	 */
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == R.id.btnGetDistance) {
@@ -100,6 +115,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		}
 	}
 
+	/**
+	 * Called when a Button was Pressed or Released
+	 */
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		switch (event.getAction()) {
@@ -116,6 +134,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		return false;
 	}
 
+	/**
+	 * Control the EV3
+	 */
 	private class Control extends AsyncTask<String, Integer, Long> {
 
 		protected Long doInBackground(String... cmd) {
