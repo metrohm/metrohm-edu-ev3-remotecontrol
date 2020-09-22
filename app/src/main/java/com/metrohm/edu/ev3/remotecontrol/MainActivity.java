@@ -70,10 +70,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 				btnConnect = item;
 				if (ev3 == null) {
 					new Control().execute("connect", "192.168.44.245");
-					btnConnect.setEnabled(false);
+					btnConnect.setVisible(false);
 				} else {
 					new Control().execute("disconnect");
-					btnConnect.setEnabled(false);
+					btnConnect.setVisible(false);
 				}
 				break;
 		}
@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 					audio.systemSound(3);
 					runOnUiThread(() -> {
 						btnConnect.setIcon(R.drawable.ic_link_off);
-						btnConnect.setEnabled(true);
+						btnConnect.setVisible(true);
 						btnLeft.setEnabled(true);
 						btnRight.setEnabled(true);
 						btnForward.setEnabled(true);
@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 					finishLeJos();
 					runOnUiThread(() -> {
 						btnConnect.setIcon(R.drawable.ic_link);
-						btnConnect.setEnabled(true);
+						btnConnect.setVisible(true);
 						txtDistance.setText("Distance: -- cm");
 						txtDistance.setVisibility(View.INVISIBLE);
 						btnGetDistance.setVisibility(View.INVISIBLE);
@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 				audio.systemSound(2);
 				runOnUiThread(() -> {
 					btnConnect.setIcon(R.drawable.ic_link);
-					btnConnect.setEnabled(true);
+					btnConnect.setVisible(true);
 					txtDistance.setText("Distance: -- cm");
 					txtDistance.setVisibility(View.INVISIBLE);
 					btnGetDistance.setVisibility(View.INVISIBLE);
