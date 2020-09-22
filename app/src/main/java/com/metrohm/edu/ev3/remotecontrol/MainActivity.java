@@ -3,6 +3,7 @@ package com.metrohm.edu.ev3.remotecontrol;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -10,21 +11,11 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import android.os.Bundle;
 import lejos.hardware.Audio;
-import lejos.hardware.ev3.LocalEV3;
-import lejos.hardware.port.Port;
-import lejos.hardware.port.SensorPort;
-import lejos.hardware.port.UARTPort;
-import lejos.hardware.sensor.EV3IRSensor;
-import lejos.remote.ev3.RMISampleProvider;
-import lejos.remote.ev3.RemoteEV3;
 import lejos.remote.ev3.RemoteRequestEV3;
 import lejos.remote.ev3.RemoteRequestSampleProvider;
 import lejos.robotics.RegulatedMotor;
-import lejos.robotics.SampleProvider;
 
-import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -35,10 +26,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	private RemoteRequestSampleProvider distanceProvider;
 	private float[] distanceSample;
 
-	private Thread updateDistanceThread;
-	private boolean updateDistanceEnabled = false;
-
-	private Button connect;
+	private Button btnLeft;
+	private Button btnRight;
+	private Button btnForward;
+	private Button btnBackward;
+	private Button btnConnect;
+	private Button btnGetDistance;
 	private TextView txtDistance;
 	private Audio audio;
 
@@ -47,38 +40,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		Button left = findViewById(R.id.left);
-		Button right = findViewById(R.id.right);
-		Button forward = findViewById(R.id.forward);
-		Button backward = findViewById(R.id.backward);
+		btnLeft = findViewById(R.id.left);
+		btnRight = findViewById(R.id.right);
+		btnForward = findViewById(R.id.forward);
+		btnBackward = findViewById(R.id.backward);
 		txtDistance = findViewById(R.id.txtDistance);
-		connect = findViewById(R.id.connect);
-		connect.setOnClickListener(this);
-		left.setOnTouchListener(this);
-		right.setOnTouchListener(this);
-		forward.setOnTouchListener(this);
-		backward.setOnTouchListener(this);
+		btnGetDistance = findViewById(R.id.btnGetDistance);
+		btnConnect = findViewById(R.id.connect);
+		btnConnect.setOnClickListener(this);
+		btnGetDistance.setOnClickListener(this);
+		btnLeft.setOnTouchListener(this);
+		btnRight.setOnTouchListener(this);
+		btnForward.setOnTouchListener(this);
+		btnBackward.setOnTouchListener(this);
 
 		if (checkSelfPermission(Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
 			requestPermissions(new String[] { Manifest.permission.INTERNET }, 101);
 		}
 	}
 
-	private void updateDistance() {
-		if (updateDistanceEnabled) {
-			new Timer().schedule(new TimerTask() {
-				@Override
-				public void run() {
-					try {
-						distanceProvider.fetchSample(distanceSample, 0);
-						runOnUiThread(()->txtDistance.setText("Distance: " + distanceSample[0] + " cm"));
-					} catch (Exception e) {
-						Log.e("EV3", "exception on updateDistance", e);
-					}
-					updateDistance();
-				}
-			}, 250);
-		}
+	private void updateDistanceValue() {
+		new Thread(() -> {
+			try {
+				distanceProvider.fetchSample(distanceSample, 0);
+				String distance = "Distance: " + distanceSample[0] + " cm";
+				runOnUiThread(() -> txtDistance.setText(distance));
+			} catch (Exception e) {
+				Log.e("EV3", "exception on updateDistance", e);
+				updateDistanceValue();
+			}
+		}).start();
 	}
 
 	@Override
@@ -86,14 +77,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		if (v.getId() == R.id.connect) {
 			if (ev3 == null) {
 				new Control().execute("connect", "192.168.44.245");
-				connect.setText("Disconnect");
-				txtDistance.setVisibility(View.VISIBLE);
+				btnConnect.setEnabled(false);
 			} else {
 				new Control().execute("disconnect");
-				connect.setText("Connect");
-				txtDistance.setText("Distance: -- cm");
-				txtDistance.setVisibility(View.INVISIBLE);
+				btnConnect.setEnabled(false);
 			}
+		} else if (v.getId() == R.id.btnGetDistance) {
+			updateDistanceValue();
 		}
 	}
 
@@ -123,36 +113,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 					right = ev3.createRegulatedMotor("C", 'L');
 					distanceProvider = (RemoteRequestSampleProvider) ev3.createSampleProvider("S1", "lejos.hardware.sensor.EV3IRSensor", "Distance");
 					distanceSample = new float[distanceProvider.sampleSize()];
-					updateDistanceThread = new Thread() {
-						@Override
-						public void run() {
-							updateDistance();
-						}
-					};
-					updateDistanceEnabled = true;
-					new Timer().schedule(new TimerTask() {
-						@Override
-						public void run() {
-							updateDistanceThread.start();
-						}
-					}, 2000);
 					audio = ev3.getAudio();
 					audio.systemSound(3);
+					runOnUiThread(() -> {
+						btnConnect.setText("Disconnect");
+						btnConnect.setEnabled(true);
+						btnLeft.setEnabled(true);
+						btnRight.setEnabled(true);
+						btnForward.setEnabled(true);
+						btnBackward.setEnabled(true);
+						txtDistance.setVisibility(View.VISIBLE);
+						btnGetDistance.setVisibility(View.VISIBLE);
+					});
 					return 0l;
 				} catch (Exception e) {
 					Log.e("EV3", "error on connecting", e);
 					finishLeJos();
+					runOnUiThread(() -> {
+						btnConnect.setText("Connect");
+						btnConnect.setEnabled(true);
+						txtDistance.setText("Distance: -- cm");
+						txtDistance.setVisibility(View.INVISIBLE);
+						btnGetDistance.setVisibility(View.INVISIBLE);
+					});
 					return 1l;
 				}
 			} else if (cmd[0].equals("disconnect") && ev3 != null) {
-				audio.systemSound(2);
 				finishLeJos();
+				audio.systemSound(2);
+				runOnUiThread(() -> {
+					btnConnect.setText("Connect");
+					btnConnect.setEnabled(true);
+					txtDistance.setText("Distance: -- cm");
+					txtDistance.setVisibility(View.INVISIBLE);
+					btnGetDistance.setVisibility(View.INVISIBLE);
+					btnLeft.setEnabled(false);
+					btnRight.setEnabled(false);
+					btnForward.setEnabled(false);
+					btnBackward.setEnabled(false);
+				});
 				return 0l;
 			}
 
 			if (ev3 == null) return 2l;
-
-//			ev3.getAudio().systemSound(1);
 
 			if (cmd[0].equals("stop")) {
 				left.stop(true);
@@ -187,12 +190,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	}
 
 	private void finishLeJos() {
-		try {
-			updateDistanceEnabled = false;
-			updateDistanceThread.interrupt();
-		} catch (Exception e) {
-			Log.e("EV3", "error on interrupt distance thread", e);
-		}
 		try {
 			distanceProvider.close();
 		} catch (Exception e) {
