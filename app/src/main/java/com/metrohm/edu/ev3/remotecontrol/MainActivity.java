@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		btnLeft = findViewById(R.id.left);
 		btnRight = findViewById(R.id.right);
 		btnForward = findViewById(R.id.forward);
+
 		btnLeft.setOnTouchListener(this);
 		btnRight.setOnTouchListener(this);
 		btnForward.setOnTouchListener(this);
@@ -93,9 +94,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	public boolean onTouch(View v, MotionEvent event) {
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
-				if (v.getId() == R.id.left) new Control().execute("rotate left");
-				else if (v.getId() == R.id.right) new Control().execute("rotate right");
-				else if (v.getId() == R.id.forward) new Control().execute("forward");
+				if (v.getId() == R.id.left) new Control().execute("forward");
+				else if (v.getId() == R.id.right) new Control().execute("rotate left");
+				else if (v.getId() == R.id.forward) new Control().execute("rotate right");
 				return true;
 			case MotionEvent.ACTION_UP:
 				new Control().execute("stop");
