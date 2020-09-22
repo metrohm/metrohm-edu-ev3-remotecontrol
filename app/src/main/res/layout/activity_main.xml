@@ -15,8 +15,8 @@
             android:id="@+id/right"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBaseline="@+id/stop"
-            android:layout_alignBottom="@+id/stop"
+            android:layout_alignBaseline="@+id/left"
+            android:layout_alignBottom="@+id/left"
             android:layout_alignParentRight="true"
             android:layout_marginRight="16dp"
             android:text="Right" />
@@ -25,8 +25,8 @@
             android:id="@+id/left"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignBaseline="@+id/stop"
-            android:layout_alignBottom="@+id/stop"
+            android:layout_below="@+id/forward"
+            android:layout_marginTop="32dp"
             android:layout_alignParentLeft="true"
             android:layout_marginLeft="23dp"
             android:text="Left" />
@@ -35,7 +35,7 @@
             android:id="@+id/backward"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/stop"
+            android:layout_below="@+id/left"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="37dp"
             android:text="Backward" />
@@ -48,15 +48,6 @@
             android:layout_centerHorizontal="true"
             android:layout_marginTop="34dp"
             android:text="Forward" />
-
-    <Button
-            android:id="@+id/stop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/forward"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="32dp"
-            android:text="Stop" />
 
     <Button
             android:id="@+id/connect"
