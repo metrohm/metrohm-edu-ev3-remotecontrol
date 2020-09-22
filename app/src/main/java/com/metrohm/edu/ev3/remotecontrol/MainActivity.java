@@ -3,23 +3,42 @@ package com.metrohm.edu.ev3.remotecontrol;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import lejos.hardware.Audio;
+import lejos.hardware.ev3.LocalEV3;
+import lejos.hardware.port.Port;
+import lejos.hardware.port.SensorPort;
+import lejos.hardware.port.UARTPort;
+import lejos.hardware.sensor.EV3IRSensor;
+import lejos.remote.ev3.RMISampleProvider;
+import lejos.remote.ev3.RemoteEV3;
 import lejos.remote.ev3.RemoteRequestEV3;
+import lejos.remote.ev3.RemoteRequestSampleProvider;
 import lejos.robotics.RegulatedMotor;
+import lejos.robotics.SampleProvider;
 
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener {
 
 	private RemoteRequestEV3 ev3;
 	private RegulatedMotor left, right;
+	private RemoteRequestSampleProvider distanceProvider;
+	private float[] distanceSample;
+
+	private Timer refreshTimer = new Timer();
+
 	private Button connect;
+	private TextView txtDistance;
 	private Audio audio;
 
 	@Override
@@ -31,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		Button right = findViewById(R.id.right);
 		Button forward = findViewById(R.id.forward);
 		Button backward = findViewById(R.id.backward);
+		txtDistance = findViewById(R.id.txtDistance);
 		connect = findViewById(R.id.connect);
 		connect.setOnClickListener(this);
 		left.setOnTouchListener(this);
@@ -43,15 +63,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		}
 	}
 
+	private void updateDistance() {
+		try {
+			distanceProvider.fetchSample(distanceSample, 0);
+			runOnUiThread(() -> txtDistance.setText("Distance: " + distanceSample[0] + " cm"));
+		} catch (Exception e) {
+			Log.e("EV3", "exception on updateDistance", e);
+		}
+	}
+
 	@Override
 	public void onClick(View v) {
 		if (v.getId() == R.id.connect) {
 			if (ev3 == null) {
 				new Control().execute("connect", "192.168.44.245");
 				connect.setText("Disconnect");
+				txtDistance.setVisibility(View.VISIBLE);
 			} else {
 				new Control().execute("disconnect");
 				connect.setText("Connect");
+				txtDistance.setText("Distance: -- cm");
+				txtDistance.setVisibility(View.INVISIBLE);
 			}
 		}
 	}
@@ -75,24 +107,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	private class Control extends AsyncTask<String, Integer, Long> {
 
 		protected Long doInBackground(String... cmd) {
-
 			if (cmd[0].equals("connect")) {
 				try {
 					ev3 = new RemoteRequestEV3(cmd[1]);
 					left = ev3.createRegulatedMotor("B", 'L');
 					right = ev3.createRegulatedMotor("C", 'L');
+					distanceProvider = (RemoteRequestSampleProvider) ev3.createSampleProvider("S1", "lejos.hardware.sensor.EV3IRSensor", "Distance");
+					distanceSample = new float[distanceProvider.sampleSize()];
+					refreshTimer = new Timer();
+					refreshTimer.schedule(new TimerTask() {
+						@Override
+						public void run() {
+							updateDistance();
+						}
+					}, 2000, 500);
 					audio = ev3.getAudio();
 					audio.systemSound(3);
 					return 0l;
-				} catch (IOException e) {
+				} catch (Exception e) {
+					Log.e("EV3", "error on connecting", e);
+					finishLeJos();
 					return 1l;
 				}
 			} else if (cmd[0].equals("disconnect") && ev3 != null) {
 				audio.systemSound(2);
-				left.close();
-				right.close();
-				ev3.disConnect();
-				ev3 = null;
+				finishLeJos();
 				return 0l;
 			}
 
@@ -124,5 +163,46 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 			if (result == 1l) Toast.makeText(MainActivity.this, "Could not connect to EV3", Toast.LENGTH_LONG).show();
 			else if (result == 2l) Toast.makeText(MainActivity.this, "Not connected", Toast.LENGTH_LONG).show();
 		}
+	}
+
+	@Override
+	protected void onDestroy() {
+		finishLeJos();
+		super.onDestroy();
+	}
+
+	private void finishLeJos() {
+		try {
+			refreshTimer.cancel();
+			refreshTimer = null;
+		} catch (Exception e) {
+			Log.e("EV3", "error on cancel timer", e);
+		}
+		try {
+			distanceProvider.close();
+		} catch (Exception e) {
+			Log.e("EV3", "error on closing sensor", e);
+		}
+		try {
+			left.close();
+		} catch (Exception e) {
+			Log.e("EV3", "error on closing left motor", e);
+		}
+		try {
+			right.close();
+		} catch (Exception e) {
+			Log.e("EV3", "error on closing right motor", e);
+		}
+		new Timer().schedule(new TimerTask() {
+			@Override
+			public void run() {
+				try {
+					ev3.disConnect();
+					ev3 = null;
+				} catch (Exception e) {
+					Log.e("EV3", "error on disconnecting EV3", e);
+				}
+			}
+		}, 1000);
 	}
 }
