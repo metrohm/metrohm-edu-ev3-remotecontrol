@@ -9,7 +9,6 @@
         android:paddingLeft="20dp"
         android:paddingRight="20dp"
         android:paddingTop="20dp"
-        android:background="#EAADF0"
         tools:context=".MainActivity">
 
     <Button
@@ -50,14 +49,6 @@
             android:layout_marginTop="32dp"
             android:text="Forward" android:enabled="false"/>
 
-    <Button
-            android:id="@+id/connect"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="32dp"
-            android:text="Connect"/>
     <TextView
             android:text="Distance: -- cm"
             android:layout_width="match_parent"

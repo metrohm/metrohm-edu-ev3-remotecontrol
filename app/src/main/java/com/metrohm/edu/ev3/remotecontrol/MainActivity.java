@@ -5,8 +5,7 @@ import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MotionEvent;
-import android.view.View;
+import android.view.*;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,14 +25,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	private RemoteRequestSampleProvider distanceProvider;
 	private float[] distanceSample;
 
+	private MenuItem btnConnect;
 	private Button btnLeft;
 	private Button btnRight;
 	private Button btnForward;
 	private Button btnBackward;
-	private Button btnConnect;
 	private Button btnGetDistance;
 	private TextView txtDistance;
 	private Audio audio;
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.menu_main, menu);
+		return true;
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -46,8 +52,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		btnBackward = findViewById(R.id.backward);
 		txtDistance = findViewById(R.id.txtDistance);
 		btnGetDistance = findViewById(R.id.btnGetDistance);
-		btnConnect = findViewById(R.id.connect);
-		btnConnect.setOnClickListener(this);
 		btnGetDistance.setOnClickListener(this);
 		btnLeft.setOnTouchListener(this);
 		btnRight.setOnTouchListener(this);
@@ -57,6 +61,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		if (checkSelfPermission(Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
 			requestPermissions(new String[] { Manifest.permission.INTERNET }, 101);
 		}
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case R.id.btnConnect:
+				btnConnect = item;
+				if (ev3 == null) {
+					new Control().execute("connect", "192.168.44.245");
+					btnConnect.setEnabled(false);
+				} else {
+					new Control().execute("disconnect");
+					btnConnect.setEnabled(false);
+				}
+				break;
+		}
+		return true;
 	}
 
 	private void updateDistanceValue() {
@@ -74,15 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 	@Override
 	public void onClick(View v) {
-		if (v.getId() == R.id.connect) {
-			if (ev3 == null) {
-				new Control().execute("connect", "192.168.44.245");
-				btnConnect.setEnabled(false);
-			} else {
-				new Control().execute("disconnect");
-				btnConnect.setEnabled(false);
-			}
-		} else if (v.getId() == R.id.btnGetDistance) {
+		if (v.getId() == R.id.btnGetDistance) {
 			updateDistanceValue();
 		}
 	}
@@ -116,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 					audio = ev3.getAudio();
 					audio.systemSound(3);
 					runOnUiThread(() -> {
-						btnConnect.setText("Disconnect");
+						btnConnect.setIcon(R.drawable.ic_link_off);
 						btnConnect.setEnabled(true);
 						btnLeft.setEnabled(true);
 						btnRight.setEnabled(true);
@@ -130,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 					Log.e("EV3", "error on connecting", e);
 					finishLeJos();
 					runOnUiThread(() -> {
-						btnConnect.setText("Connect");
+						btnConnect.setIcon(R.drawable.ic_link);
 						btnConnect.setEnabled(true);
 						txtDistance.setText("Distance: -- cm");
 						txtDistance.setVisibility(View.INVISIBLE);
@@ -142,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 				finishLeJos();
 				audio.systemSound(2);
 				runOnUiThread(() -> {
-					btnConnect.setText("Connect");
+					btnConnect.setIcon(R.drawable.ic_link);
 					btnConnect.setEnabled(true);
 					txtDistance.setText("Distance: -- cm");
 					txtDistance.setVisibility(View.INVISIBLE);
