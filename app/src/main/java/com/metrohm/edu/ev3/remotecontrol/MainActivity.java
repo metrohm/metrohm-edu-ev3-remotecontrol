@@ -35,7 +35,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	private RemoteRequestSampleProvider distanceProvider;
 	private float[] distanceSample;
 
-	private Timer refreshTimer = new Timer();
+	private Thread updateDistanceThread;
+	private boolean updateDistanceEnabled = false;
 
 	private Button connect;
 	private TextView txtDistance;
@@ -64,11 +65,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	}
 
 	private void updateDistance() {
-		try {
-			distanceProvider.fetchSample(distanceSample, 0);
-			runOnUiThread(() -> txtDistance.setText("Distance: " + distanceSample[0] + " cm"));
-		} catch (Exception e) {
-			Log.e("EV3", "exception on updateDistance", e);
+		if (updateDistanceEnabled) {
+			new Timer().schedule(new TimerTask() {
+				@Override
+				public void run() {
+					try {
+						distanceProvider.fetchSample(distanceSample, 0);
+						runOnUiThread(()->txtDistance.setText("Distance: " + distanceSample[0] + " cm"));
+					} catch (Exception e) {
+						Log.e("EV3", "exception on updateDistance", e);
+					}
+					updateDistance();
+				}
+			}, 250);
 		}
 	}
 
@@ -114,13 +123,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 					right = ev3.createRegulatedMotor("C", 'L');
 					distanceProvider = (RemoteRequestSampleProvider) ev3.createSampleProvider("S1", "lejos.hardware.sensor.EV3IRSensor", "Distance");
 					distanceSample = new float[distanceProvider.sampleSize()];
-					refreshTimer = new Timer();
-					refreshTimer.schedule(new TimerTask() {
+					updateDistanceThread = new Thread() {
 						@Override
 						public void run() {
 							updateDistance();
 						}
-					}, 2000, 500);
+					};
+					updateDistanceEnabled = true;
+					new Timer().schedule(new TimerTask() {
+						@Override
+						public void run() {
+							updateDistanceThread.start();
+						}
+					}, 2000);
 					audio = ev3.getAudio();
 					audio.systemSound(3);
 					return 0l;
@@ -173,10 +188,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 	private void finishLeJos() {
 		try {
-			refreshTimer.cancel();
-			refreshTimer = null;
+			updateDistanceEnabled = false;
+			updateDistanceThread.interrupt();
 		} catch (Exception e) {
-			Log.e("EV3", "error on cancel timer", e);
+			Log.e("EV3", "error on interrupt distance thread", e);
 		}
 		try {
 			distanceProvider.close();
