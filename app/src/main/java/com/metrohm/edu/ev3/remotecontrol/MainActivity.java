@@ -28,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	private Button btnLeft;
 	private Button btnRight;
 	private Button btnForward;
+	private Button btnBackwards;
 	private Audio audio;
 
 	/**
@@ -41,10 +42,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		btnLeft = findViewById(R.id.left);
 		btnRight = findViewById(R.id.right);
 		btnForward = findViewById(R.id.forward);
+		btnBackwards = findViewById(R.id.Backwards);
 
 		btnLeft.setOnTouchListener(this);
 		btnRight.setOnTouchListener(this);
 		btnForward.setOnTouchListener(this);
+		btnBackwards.setOnTouchListener(this);
 
 		if (checkSelfPermission(Manifest.permission.INTERNET) != PackageManager.PERMISSION_GRANTED) {
 			requestPermissions(new String[] { Manifest.permission.INTERNET }, 101);
@@ -112,9 +115,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	public boolean onTouch(View v, MotionEvent event) {
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
-				if (v.getId() == R.id.left) new Control().execute("forward");
-				else if (v.getId() == R.id.right) new Control().execute("rotate left");
-				else if (v.getId() == R.id.forward) new Control().execute("rotate right");
+				if (v.getId() == R.id.left) new Control().execute("rotate left");
+				else if (v.getId() == R.id.right) new Control().execute("rotate right");
+				else if (v.getId() == R.id.forward) new Control().execute("forward");
+				else if (v.getId() == R.id.Backwards) new Control().execute("backward");
 				return true;
 			case MotionEvent.ACTION_UP:
 				new Control().execute("stop");
@@ -143,6 +147,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 						btnLeft.setEnabled(true);
 						btnRight.setEnabled(true);
 						btnForward.setEnabled(true);
+						btnBackwards.setEnabled(true);
 
 					});
 					return 0l;
@@ -164,6 +169,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 					btnLeft.setEnabled(false);
 					btnRight.setEnabled(false);
 					btnForward.setEnabled(false);
+					btnBackwards.setEnabled(false);
 				});
 				return 0l;
 			}
