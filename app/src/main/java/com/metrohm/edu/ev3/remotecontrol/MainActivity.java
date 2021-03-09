@@ -20,9 +20,7 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener {
 
 	private RemoteRequestEV3 ev3;
-	private RegulatedMotor left, right;
-	private RemoteRequestSampleProvider distanceProvider;
-	private float[] distanceSample;
+	private RegulatedMotor left, right, canon;
 
 	private MenuItem btnConnect;
 	private Button btnLeft;
@@ -70,31 +68,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 			case R.id.btnConnect:
 				btnConnect = item;
 				if (ev3 == null) {
-					new Control().execute("connect", "192.168.44.245");
+					new Control().execute(ControlCommand.CONNECT.toString(), "192.168.44.245");
 					btnConnect.setVisible(false);
 				} else {
-					new Control().execute("disconnect");
+					new Control().execute(ControlCommand.DISCONNECT.toString());
 					btnConnect.setVisible(false);
 				}
 				break;
 		}
 		return true;
-	}
-
-	/**
-	 * Update Distance from the Distance Sensor
-	 */
-	private void updateDistanceValue() {
-		new Thread(() -> {
-			try {
-				distanceProvider.fetchSample(distanceSample, 0);
-				String distance = "Distance: " + distanceSample[0] + " cm";
-				runOnUiThread(() -> {/*todo*/});
-			} catch (Exception e) {
-				Log.e("EV3", "exception on updateDistance", e);
-				updateDistanceValue();
-			}
-		}).start();
 	}
 
 	/**
@@ -112,12 +94,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	public boolean onTouch(View v, MotionEvent event) {
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
-				if (v.getId() == R.id.left) new Control().execute("forward");
-				else if (v.getId() == R.id.right) new Control().execute("rotate left");
-				else if (v.getId() == R.id.forward) new Control().execute("rotate right");
+				if (v.getId() == R.id.left) {
+					new Control().execute(ControlCommand.FORWARD.toString());
+				} else if (v.getId() == R.id.right) {
+					new Control().execute(ControlCommand.ROTATE_LEFT.toString());
+				} else if (v.getId() == R.id.forward) {
+					new Control().execute(ControlCommand.ROTATE_RIGHT.toString());
+				}
 				return true;
 			case MotionEvent.ACTION_UP:
-				new Control().execute("stop");
+				new Control().execute(ControlCommand.STOP.toString());
 				return true;
 		}
 		return false;
@@ -128,13 +114,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	 */
 	private class Control extends AsyncTask<String, Integer, Long> {
 		protected Long doInBackground(String... cmd) {
-			if (cmd[0].equals("connect")) {
+			if (cmd[0].equals(ControlCommand.CONNECT.toString())) {
 				try {
 					ev3 = new RemoteRequestEV3(cmd[1]);
 					left = ev3.createRegulatedMotor("B", 'L');
 					right = ev3.createRegulatedMotor("C", 'L');
-					distanceProvider = (RemoteRequestSampleProvider) ev3.createSampleProvider("S1", "lejos.hardware.sensor.EV3IRSensor", "Distance");
-					distanceSample = new float[distanceProvider.sampleSize()];
+					canon = ev3.createRegulatedMotor("D", 'L');
 					audio = ev3.getAudio();
 					audio.systemSound(3);
 					runOnUiThread(() -> {
@@ -155,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 					});
 					return 1l;
 				}
-			} else if (cmd[0].equals("disconnect") && ev3 != null) {
+			} else if (cmd[0].equals(ControlCommand.DISCONNECT.toString()) && ev3 != null) {
 				finishLeJos();
 				audio.systemSound(2);
 				runOnUiThread(() -> {
@@ -170,19 +155,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 			if (ev3 == null) return 2l;
 
-			if (cmd[0].equals("stop")) {
+			if (cmd[0].equals(ControlCommand.STOP.toString())) {
 				left.stop(true);
 				right.stop(true);
-			} else if (cmd[0].equals("forward")) {
+			} else if (cmd[0].equals(ControlCommand.FORWARD.toString())) {
 				left.forward();
 				right.forward();
-			} else if (cmd[0].equals("backward")) {
+			} else if (cmd[0].equals(ControlCommand.BACKWARD.toString())) {
 				left.backward();
 				right.backward();
-			} else if (cmd[0].equals("rotate left")) {
+			} else if (cmd[0].equals(ControlCommand.ROTATE_LEFT.toString())) {
 				left.backward();
 				right.forward();
-			} else if (cmd[0].equals("rotate right")) {
+			} else if (cmd[0].equals(ControlCommand.ROTATE_RIGHT.toString())) {
 				left.forward();
 				right.backward();
 			}
@@ -203,11 +188,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 	}
 
 	private void finishLeJos() {
-		try {
-			distanceProvider.close();
-		} catch (Exception e) {
-			Log.e("EV3", "error on closing sensor", e);
-		}
 		try {
 			left.close();
 		} catch (Exception e) {
