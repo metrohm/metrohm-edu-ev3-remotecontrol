@@ -159,9 +159,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 			} else if (cmd[0].equals(ControlCommand.FORWARD.toString())) {
 				left.forward();
 				right.forward();
-			} else if (cmd[0].equals(ControlCommand.BACKWARD.toString())) {
-				left.backward();
-				right.backward();
 			} else if (cmd[0].equals(ControlCommand.ROTATE_LEFT.toString())) {
 				left.backward();
 				right.forward();

@@ -11,7 +11,6 @@ public enum ControlCommand {
 	DISCONNECT,
 	STOP,
 	FORWARD,
-	BACKWARD,
 	ROTATE_LEFT,
 	ROTATE_RIGHT,
 	SHOOT
