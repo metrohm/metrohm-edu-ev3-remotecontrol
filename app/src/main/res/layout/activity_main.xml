@@ -42,4 +42,13 @@
             android:text="Forward"
             android:enabled="false"/>
 
+    <Button
+            android:id="@+id/backward"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/left"
+            android:layout_marginTop="32dp"
+            android:layout_centerHorizontal="true"
+            android:text="Backward"
+            android:enabled="false"/>
 </RelativeLayout>

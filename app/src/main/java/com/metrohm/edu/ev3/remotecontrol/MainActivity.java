@@ -11,7 +11,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import lejos.hardware.Audio;
 import lejos.remote.ev3.RemoteRequestEV3;
-import lejos.remote.ev3.RemoteRequestSampleProvider;
 import lejos.robotics.RegulatedMotor;
 
 import java.util.Timer;
@@ -68,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 			case R.id.btnConnect:
 				btnConnect = item;
 				if (ev3 == null) {
-					new Control().execute(ControlCommand.CONNECT.toString(), "192.168.44.245");
+					new Control().execute(ControlCommand.CONNECT.toString(), "192.168.44.74");
 					btnConnect.setVisible(false);
 				} else {
 					new Control().execute(ControlCommand.DISCONNECT.toString());
