@@ -13,5 +13,6 @@ public enum ControlCommand {
 	FORWARD,
 	BACKWARD,
 	ROTATE_LEFT,
-	ROTATE_RIGHT
+	ROTATE_RIGHT,
+	SHOOT
 }

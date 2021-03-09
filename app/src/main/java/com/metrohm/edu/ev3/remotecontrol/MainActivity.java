@@ -128,7 +128,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 						btnLeft.setEnabled(true);
 						btnRight.setEnabled(true);
 						btnForward.setEnabled(true);
-
 					});
 					return 0l;
 				} catch (Exception e) {
@@ -170,6 +169,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 			} else if (cmd[0].equals(ControlCommand.ROTATE_RIGHT.toString())) {
 				left.forward();
 				right.backward();
+			} else if (cmd[0].equals(ControlCommand.SHOOT.toString())) {
+				canon.rotate(1080);
 			}
 
 			return 0l;
