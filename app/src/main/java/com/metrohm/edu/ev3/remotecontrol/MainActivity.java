@@ -19,6 +19,7 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener {
 
 	private RemoteRequestEV3 ev3;
+	private boolean connected = false;
 	private RegulatedMotor left, right, canon;
 
 	private MenuItem btnConnect;
@@ -66,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		switch (item.getItemId()) {
 			case R.id.btnConnect:
 				btnConnect = item;
-				if (ev3 == null) {
+				if (!connected) {
 					new Control().execute(ControlCommand.CONNECT.toString(), "192.168.44.74");
 					btnConnect.setVisible(false);
 				} else {
@@ -115,12 +116,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 		protected Long doInBackground(String... cmd) {
 			if (cmd[0].equals(ControlCommand.CONNECT.toString())) {
 				try {
-					ev3 = new RemoteRequestEV3(cmd[1]);
-					left = ev3.createRegulatedMotor("B", 'L');
-					right = ev3.createRegulatedMotor("C", 'L');
-					canon = ev3.createRegulatedMotor("D", 'L');
-					audio = ev3.getAudio();
-					audio.systemSound(3);
+//					ev3 = new RemoteRequestEV3(cmd[1]);
+//					left = ev3.createRegulatedMotor("B", 'L');
+//					right = ev3.createRegulatedMotor("C", 'L');
+//					canon = ev3.createRegulatedMotor("D", 'L');
+//					audio = ev3.getAudio();
+//					audio.systemSound(3);
+					Log.d(MainActivity.class.getName(), "Robot connected.");
+					connected = true;
 					runOnUiThread(() -> {
 						btnConnect.setIcon(R.drawable.ic_link_off);
 						btnConnect.setVisible(true);
@@ -131,16 +134,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 					return 0l;
 				} catch (Exception e) {
 					Log.e("EV3", "error on connecting", e);
-					finishLeJos();
+					connected = false;
+//					finishLeJos();
 					runOnUiThread(() -> {
 						btnConnect.setIcon(R.drawable.ic_link);
 						btnConnect.setVisible(true);
 					});
 					return 1l;
 				}
-			} else if (cmd[0].equals(ControlCommand.DISCONNECT.toString()) && ev3 != null) {
-				finishLeJos();
-				audio.systemSound(2);
+			} else if (cmd[0].equals(ControlCommand.DISCONNECT.toString())) {
+//				finishLeJos();
+//				audio.systemSound(2);
+				Log.d(MainActivity.class.getName(), "Robot disconnected.");
 				runOnUiThread(() -> {
 					btnConnect.setIcon(R.drawable.ic_link);
 					btnConnect.setVisible(true);
@@ -151,25 +156,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 				return 0l;
 			}
 
-			if (ev3 == null) return 2l;
+//			if (ev3 == null) return 2l;
 
 			if (cmd[0].equals(ControlCommand.STOP.toString())) {
-				left.stop(true);
-				right.stop(true);
+//				left.stop(true);
+//				right.stop(true);
+				Log.d(MainActivity.class.getName(), "Robot stopped.");
 			} else if (cmd[0].equals(ControlCommand.FORWARD.toString())) {
-				left.forward();
-				right.forward();
+//				left.forward();
+//				right.forward();
+				Log.d(MainActivity.class.getName(), "Robot moves forward.");
 			} else if (cmd[0].equals(ControlCommand.BACKWARD.toString())) {
-				left.backward();
-				right.backward();
+//				left.backward();
+//				right.backward();
+				Log.d(MainActivity.class.getName(), "Robot moves backward.");
 			} else if (cmd[0].equals(ControlCommand.ROTATE_LEFT.toString())) {
-				left.backward();
-				right.forward();
+//				left.backward();
+//				right.forward();
+				Log.d(MainActivity.class.getName(), "Robot rotates left.");
 			} else if (cmd[0].equals(ControlCommand.ROTATE_RIGHT.toString())) {
-				left.forward();
-				right.backward();
+//				left.forward();
+//				right.backward();
+				Log.d(MainActivity.class.getName(), "Robot rotates right.");
 			} else if (cmd[0].equals(ControlCommand.SHOOT.toString())) {
-				canon.rotate(1080);
+//				canon.rotate(1080);
+				Log.d(MainActivity.class.getName(), "Robot shoots.");
 			}
 
 			return 0l;
