@@ -146,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //				finishLeJos();
 //				audio.systemSound(2);
 				Log.d(MainActivity.class.getName(), "Robot disconnected.");
+				connected = false;
 				runOnUiThread(() -> {
 					btnConnect.setIcon(R.drawable.ic_link);
 					btnConnect.setVisible(true);
